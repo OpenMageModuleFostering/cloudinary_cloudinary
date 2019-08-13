@@ -1,0 +1,16 @@
+{
+    "name": "OpenMageModuleFostering/Cloudinary_Cloudinary",
+    "type": "magento-module",
+    "license": "MIT-License-(MITL)",
+    "homepage": "",
+    "description": "Cloudinary - Image Management In The Cloud",
+    "authors": [
+    {
+        "name": "Cloudinary",
+        "email": "accounts+magento@cloudinary.com"
+    }
+],
+    "suggest": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}
