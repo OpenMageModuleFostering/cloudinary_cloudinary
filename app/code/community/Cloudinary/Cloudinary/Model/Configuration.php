@@ -1,4 +1,5 @@
 <?php
+
 use CloudinaryExtension\Cloud;
 use CloudinaryExtension\ConfigurationBuilder;
 use CloudinaryExtension\ConfigurationInterface;
@@ -8,6 +9,7 @@ use CloudinaryExtension\Image\Transformation\Dpr;
 use CloudinaryExtension\Image\Transformation\FetchFormat;
 use CloudinaryExtension\Image\Transformation\Gravity;
 use CloudinaryExtension\Image\Transformation\Quality;
+use CloudinaryExtension\Image\Transformation\Freeform;
 use CloudinaryExtension\Security\CloudinaryEnvironmentVariable;
 use CloudinaryExtension\UploadConfig;
 
@@ -25,6 +27,7 @@ class Cloudinary_Cloudinary_Model_Configuration implements ConfigurationInterfac
     const CONFIG_DEFAULT_FETCH_FORMAT = 'cloudinary/transformations/cloudinary_fetch_format';
     const CONFIG_CDN_SUBDOMAIN = 'cloudinary/configuration/cloudinary_cdn_subdomain';
     const CONFIG_FOLDERED_MIGRATION = 'cloudinary/configuration/cloudinary_foldered_migration';
+    const CONFIG_GLOBAL_FREEFORM = 'cloudinary/transformations/cloudinary_free_transform_global';
 
     private $environmentVariable;
 
@@ -60,7 +63,8 @@ class Cloudinary_Cloudinary_Model_Configuration implements ConfigurationInterfac
             ->withGravity(Gravity::fromString($this->getDefaultGravity()))
             ->withFetchFormat(FetchFormat::fromString($this->getFetchFormat()))
             ->withQuality(Quality::fromString($this->getImageQuality()))
-            ->withDpr(Dpr::fromString($this->getImageDpr()));
+            ->withDpr(Dpr::fromString($this->getImageDpr()))
+            ->withFreeform(Freeform::fromString($this->getDefaultGlobalFreeform()));
 
         if ($this->isSmartServing()){
             $transformation
@@ -213,5 +217,10 @@ class Cloudinary_Cloudinary_Model_Configuration implements ConfigurationInterfac
     private function getImageDpr()
     {
         return Mage::getStoreConfig(self::CONFIG_DEFAULT_DPR);
+    }
+
+    private function getDefaultGlobalFreeform()
+    {
+        return Mage::getStoreConfig(self::CONFIG_GLOBAL_FREEFORM);
     }
 }

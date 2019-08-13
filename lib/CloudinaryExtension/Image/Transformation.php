@@ -9,6 +9,7 @@ use CloudinaryExtension\Image\Transformation\Format;
 use CloudinaryExtension\Image\Transformation\Gravity;
 use CloudinaryExtension\Image\Transformation\Quality;
 use CloudinaryExtension\Image\Transformation\Crop;
+use CloudinaryExtension\Image\Transformation\Freeform;
 
 class Transformation
 {
@@ -19,6 +20,7 @@ class Transformation
     private $quality;
     private $dpr;
     private $flags;
+    private $freeform;
 
     public function __construct()
     {
@@ -63,6 +65,12 @@ class Transformation
         return $this;
     }
 
+    public function withFreeform(Freeform $freeform)
+    {
+        $this->freeform = $freeform;
+        return $this;
+    }
+
     public function addFlags(array $flags = [])
     {
         $this->flags += $flags;
@@ -84,8 +92,8 @@ class Transformation
             'width' => $this->dimensions ? $this->dimensions->getWidth() : null,
             'height' => $this->dimensions ? $this->dimensions->getHeight() : null,
             'dpr' => (string)$this->dpr,
-            'flags' => $this->flags
+            'flags' => $this->flags,
+            'raw_transformation' => (string)$this->freeform
         );
     }
 }
-

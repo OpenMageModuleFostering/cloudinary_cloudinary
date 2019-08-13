@@ -35,7 +35,7 @@ class Cloudinary_Cloudinary_Model_SynchronisedMediaUnifier implements Synchroniz
         return array_reduce(
             $this->_synchronisedMediaRepositories,
             function($carry, $synchronisedMediaRepository) {
-                return $carry + $synchronisedMediaRepository->findUnsynchronisedImages();
+                return array_merge($carry, $synchronisedMediaRepository->findUnsynchronisedImages());
             },
             []
         );
@@ -49,7 +49,7 @@ class Cloudinary_Cloudinary_Model_SynchronisedMediaUnifier implements Synchroniz
         return array_reduce(
             $this->_synchronisedMediaRepositories,
             function($carry, $synchronisedMediaRepository) {
-                return $carry + $synchronisedMediaRepository->findOrphanedSynchronisedImages();
+                return array_merge($carry, $synchronisedMediaRepository->findOrphanedSynchronisedImages());
             },
             []
         );
