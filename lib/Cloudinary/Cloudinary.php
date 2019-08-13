@@ -6,13 +6,47 @@ class Cloudinary {
     const OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net";
     const AKAMAI_SHARED_CDN = "res.cloudinary.com";
     const SHARED_CDN = "res.cloudinary.com";
-    const VERSION = "1.0.17";
-    const USER_AGENT = "cld-php-1.0.17";
     const BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    const RANGE_VALUE_RE = '/^(?P<value>(\d+\.)?\d+)(?P<modifier>[%pP])?$/';
+    const RANGE_RE = '/^(\d+\.)?\d+[%pP]?\.\.(\d+\.)?\d+[%pP]?$/';
+
+    const VERSION = "1.1.1";
+    /** @internal Do not change this value */
+    const USER_AGENT = "CloudinaryPHP/1.1.1";
+
+    /**
+     * Additional information to be passed with the USER_AGENT, e.g. "CloudinaryMagento/1.0.1". This value is set in platform-specific
+     * implementations that use cloudinary_php.
+     *
+     * The format of the value should be <ProductName>/Version[ (comment)].
+     * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.43
+     *
+     * <b>Do not set this value in application code!</b>
+     *
+     * @var string
+     */
+    public static $USER_PLATFORM = "";
+
     public static $DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = array("width"=>"auto", "crop"=>"limit");
 
     private static $config = NULL;
     public static $JS_CONFIG_PARAMS = array("api_key", "cloud_name", "private_cdn", "secure_distribution", "cdn_subdomain");
+
+    /**
+     * Provides the USER_AGENT string that is passed to the Cloudinary servers.
+     *
+     * Prepends {@link $USER_PLATFORM} if it is defined.
+     *
+     * @return string
+     */
+    public static function userAgent()
+    {
+        if (self::$USER_PLATFORM == "") {
+            return self::USER_AGENT;
+        } else {
+            return self::$USER_PLATFORM . " " . self::USER_AGENT;
+        }
+    }
 
     public static function config($values = NULL) {
         if (self::$config == NULL) {
@@ -115,9 +149,8 @@ class Cloudinary {
     }
 
     private static function generate_base_transformation($base_transformation) {
-        return is_array($base_transformation) ?
-               Cloudinary::generate_transformation_string($base_transformation) :
-               Cloudinary::generate_transformation_string(array("transformation"=>$base_transformation));
+        $options = is_array($base_transformation) ? $base_transformation : array("transformation"=>$base_transformation);
+        return Cloudinary::generate_transformation_string($options);
     }
 
     // Warning: $options are being destructively updated!
@@ -174,10 +207,56 @@ class Cloudinary {
         $flags = implode(Cloudinary::build_array(Cloudinary::option_consume($options, "flags")), ".");
         $dpr = Cloudinary::option_consume($options, "dpr", Cloudinary::config_get("dpr"));
 
-        $params = array("w"=>$width, "h"=>$height, "t"=>$named_transformation, "c"=>$crop, "b"=>$background, "co"=>$color, "e"=>$effect, "bo"=>$border, "a"=>$angle, "fl"=>$flags, "dpr"=>$dpr);
-        $simple_params = array("x"=>"x", "y"=>"y", "r"=>"radius", "d"=>"default_image", "g"=>"gravity",
-                              "q"=>"quality", "p"=>"prefix", "l"=>"overlay", "u"=>"underlay", "f"=>"fetch_format",
-                              "dn"=>"density", "pg"=>"page", "dl"=>"delay", "cs"=>"color_space", "o"=>"opacity");
+        $duration = Cloudinary::norm_range_value(Cloudinary::option_consume($options, "duration"));
+        $start_offset = Cloudinary::norm_range_value(Cloudinary::option_consume($options, "start_offset"));
+        $end_offset = Cloudinary::norm_range_value(Cloudinary::option_consume($options, "end_offset"));
+        $offset = Cloudinary::split_range(Cloudinary::option_consume($options, "offset"));
+        if (!empty($offset)) {
+            $start_offset = Cloudinary::norm_range_value($offset[0]);
+            $end_offset = Cloudinary::norm_range_value($offset[1]);  
+        }
+        
+        $video_codec = Cloudinary::process_video_codec_param(Cloudinary::option_consume($options, "video_codec"));
+
+        $params = array(
+          "a"   => $angle, 
+          "b"   => $background, 
+          "bo"  => $border, 
+          "c"   => $crop, 
+          "co"  => $color, 
+          "dpr" => $dpr,
+          "du"  => $duration,
+          "e"   => $effect, 
+          "eo"  => $end_offset,
+          "fl"  => $flags, 
+          "h"   => $height, 
+          "so"  => $start_offset,
+          "t"   => $named_transformation,
+          "vc"  => $video_codec,
+          "w"   => $width);
+
+        $simple_params = array(
+          "ac" => "audio_codec",
+          "af" => "audio_frequency",
+          "br" => "bit_rate",
+          "cs" => "color_space",
+          "d"  => "default_image",
+          "dl" => "delay",
+          "dn" => "density",
+          "f"  => "fetch_format",
+          "g"  => "gravity",
+          "l"  => "overlay",
+          "o"  => "opacity",
+          "p"  => "prefix",
+          "pg" => "page",
+          "q"  => "quality",
+          "r"  => "radius",
+          "u"  => "underlay",
+          "vs" => "video_sampling",
+          "x"  => "x",
+          "y"  => "y",
+          "z"  => "zoom");
+
         foreach ($simple_params as $param=>$option) {
             $params[$param] = Cloudinary::option_consume($options, $option);
         }
@@ -201,6 +280,48 @@ class Cloudinary {
             $options["hidpi"] = true;
         }
         return implode("/", array_filter($base_transformations));
+    }
+    
+    private static function split_range($range) {
+        if (is_array($range) && count($range) >= 2) {
+            return array($range[0], end($range));
+        } else if (is_string($range) && preg_match(Cloudinary::RANGE_RE, $range) == 1) {
+            return explode("..", $range, 2);
+        } else {
+            return NULL;
+        }
+    }
+
+    private static function norm_range_value($value) {
+        if (empty($value)) {
+          return NULL;
+        }
+        
+        preg_match(Cloudinary::RANGE_VALUE_RE, $value, $matches);
+        
+        if (empty($matches)) {
+          return NULL;
+        }
+
+        $modifier = '';
+        if (!empty($matches['modifier'])) {
+          $modifier = 'p';
+        }
+        return $matches['value'] . $modifier;
+    }
+
+    private static function process_video_codec_param($param) {
+        $out_param = $param;
+        if (is_array($out_param)) {
+          $out_param = $param['codec'];
+          if (array_key_exists('profile', $param)) {
+              $out_param = $out_param . ':' . $param['profile'];
+              if (array_key_exists('level', $param)) {
+                  $out_param = $out_param . ':' . $param['level'];
+              }
+          }
+        }
+        return $out_param;
     }
 
     // Warning: $options are being destructively updated!
@@ -344,12 +465,12 @@ class Cloudinary {
           $shared_domain = ($secure_distribution == Cloudinary::SHARED_CDN);
         }
 
-        if (empty($secure_cdn_subdomain) && $shared_domain) {
+        if (is_null($secure_cdn_subdomain) && $shared_domain) {
           $secure_cdn_subdomain = $cdn_subdomain ;
         }
 
         if ($secure_cdn_subdomain) {
-          $secure_distribution = str_replace('res.cloudinary.com', "res-" . ((crc32($source) % 5) + 1) . "cloudinary.com", $secure_distribution);
+          $secure_distribution = str_replace('res.cloudinary.com', "res-" . ((crc32($source) % 5) + 1) . ".cloudinary.com", $secure_distribution);
         }
 
         $prefix = "https://" . $secure_distribution;
@@ -459,10 +580,30 @@ class Cloudinary {
         $to_sign = implode("&", array_map($join_pair, array_keys($params), array_values($params)));
         return sha1($to_sign . $api_secret);
     }
-    public static function html_attrs($options) {
-        ksort($options);
-        $join_pair = function($key, $value) { return $key . "='" . $value . "'"; };
-        return implode(" ", array_map($join_pair, array_keys($options), array_values($options)));
+
+    public static function html_attrs($options, $only = NULL) {
+        $attrs = array();
+        foreach($options as $k => $v) {
+          $key = $k;
+          $value = $v;
+          if (is_int($k)) {
+            $key = $v;
+            $value = "";  
+          }
+          if (is_array($only) && array_search($key, $only) !== FALSE || !is_array($only)) {
+            $attrs[$key] = $value;
+          }
+        }
+        ksort($attrs);
+        
+        $join_pair = function($key, $value) { 
+          $out = $key;
+          if (!empty($value)) {
+            $out .= '=\'' . $value . '\'';
+          }
+          return $out; 
+        };
+        return implode(" ", array_map($join_pair, array_keys($attrs), array_values($attrs)));
     }
 }
 
