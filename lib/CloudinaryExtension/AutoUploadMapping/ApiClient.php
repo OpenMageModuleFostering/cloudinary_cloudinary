@@ -4,6 +4,7 @@ namespace CloudinaryExtension\AutoUploadMapping;
 
 use Cloudinary;
 use Cloudinary\Api;
+use Cloudinary\Api\Response;
 use CloudinaryExtension\ConfigurationBuilder;
 use CloudinaryExtension\ConfigurationInterface;
 
@@ -85,11 +86,11 @@ class ApiClient
     }
 
     /**
-     * @param array $response
+     * @param Response $response
      * @return array
      * @throws \Exception
      */
-    private function parseFetchMappingsResponse(array $response)
+    private function parseFetchMappingsResponse(Response $response)
     {
         if (!array_key_exists(self::MAPPINGS_KEY, $response) || !is_array($response[self::MAPPINGS_KEY])) {
             throw new \Exception('Illegal mapping response');

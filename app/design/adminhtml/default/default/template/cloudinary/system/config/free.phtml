@@ -27,7 +27,7 @@
         },
 
         getSampleImageUrl: function() {
-            return '/admin/cloudinaryajax/sample/free/' + this.getTransformText() + '/key/' + this.secret;
+            return '/admin/cloudinaryajax/sample/key/' + this.secret;
         },
 
         getImageHtml: function(src) {
@@ -62,6 +62,8 @@
             self.setPreviewActiveState(false);
 
             new Ajax.Request(this.getSampleImageUrl(), {
+                method: 'post',
+                parameters: { free: this.getTransformText() },
                 onSuccess: function(response) {
                     self.updatePreviewImage(response.responseJSON.url);
                 },

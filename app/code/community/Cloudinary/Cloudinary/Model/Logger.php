@@ -5,6 +5,7 @@ class Cloudinary_Cloudinary_Model_Logger extends Mage_Core_Model_Abstract implem
     const SIGNATURE_TEMPLATE = "%s::%s ";
     const ALPHANUM_REGEX = '/[^A-Za-z0-9]/';
     const IGNORE_GLOBAL_LOG_FLAG = true;
+    const MESSAGE_FORMAT = 'Cloudinary: %s';
 
     /**
      * @param string $message
@@ -50,7 +51,12 @@ class Cloudinary_Cloudinary_Model_Logger extends Mage_Core_Model_Abstract implem
     private function log($message, $type)
     {
         if ($this->isActive()) {
-            Mage::log($message, $type, $this->filename(), self::IGNORE_GLOBAL_LOG_FLAG);
+            Mage::log(
+                sprintf(self::MESSAGE_FORMAT, $message),
+                $type,
+                $this->filename(),
+                self::IGNORE_GLOBAL_LOG_FLAG
+            );
         }
     }
 

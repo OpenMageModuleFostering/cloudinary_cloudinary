@@ -68,7 +68,7 @@ class CloudinaryImageProvider implements ImageProvider
     public function retrieveTransformed(Image $image, Transformation $transformation)
     {
         return Image::fromPath(
-            \cloudinary_url($image->getId(), $transformation->build() + ["secure" => true]),
+            \cloudinary_url($image->getId(), ['transformation' => $transformation->build(), 'secure' => true]),
             $image->getRelativePath()
         );
     }

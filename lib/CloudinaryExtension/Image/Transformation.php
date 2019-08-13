@@ -84,16 +84,18 @@ class Transformation
 
     public function build()
     {
-        return array(
-            'fetch_format' => (string)$this->fetchFormat,
-            'quality' => (string)$this->quality,
-            'crop' => (string)$this->crop,
-            'gravity' => (string)$this->gravity ?: null,
-            'width' => $this->dimensions ? $this->dimensions->getWidth() : null,
-            'height' => $this->dimensions ? $this->dimensions->getHeight() : null,
-            'dpr' => (string)$this->dpr,
-            'flags' => $this->flags,
-            'raw_transformation' => (string)$this->freeform
-        );
+        return [
+            [
+                'fetch_format' => (string)$this->fetchFormat,
+                'quality' => (string)$this->quality,
+                'crop' => (string)$this->crop,
+                'gravity' => (string)$this->gravity ?: null,
+                'width' => $this->dimensions ? $this->dimensions->getWidth() : null,
+                'height' => $this->dimensions ? $this->dimensions->getHeight() : null,
+                'dpr' => (string)$this->dpr,
+                'flags' => $this->flags
+            ],
+            ['raw_transformation' => (string)$this->freeform]
+        ];
     }
 }

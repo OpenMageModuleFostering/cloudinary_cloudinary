@@ -3,6 +3,9 @@
 class Cloudinary_Cloudinary_Adminhtml_CloudinaryController extends Mage_Adminhtml_Controller_Action
 {
     const CRON_INTERVAL = 300;
+    const MIGRATION_START_MESSAGE = 'migration start requested.';
+    const MIGRATION_STOP_MESSAGE = 'migration stop requested.';
+    const MIGRATION_CRON_WARNING = 'cron is not running, so no migration will occur.';
 
     /**
      * @var Cloudinary_Cloudinary_Model_Migration
@@ -66,7 +69,9 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryController extends Mage_Adminhtm
         );
 
         foreach ($combinedMediaRepository->findOrphanedSynchronisedImages() as $orphanImage) {
-            Mage::getModel('cloudinary_cloudinary/migrationError')->orphanRemoved($orphanImage)->save();
+            $error = Mage::getModel('cloudinary_cloudinary/migrationError')->orphanRemoved($orphanImage);
+            Mage::getModel('cloudinary_cloudinary/logger')->notice($error->getMessage());
+            $error->save();
             $orphanImage->delete();
         }
     }
@@ -80,12 +85,16 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryController extends Mage_Adminhtm
     {
         $this->_migrationTask->start();
 
+        Mage::getModel('cloudinary_cloudinary/logger')->notice(self::MIGRATION_START_MESSAGE);
+
         $this->_redirectToManageCloudinary();
     }
 
     public function stopMigrationAction()
     {
         $this->_migrationTask->stop();
+
+        Mage::getModel('cloudinary_cloudinary/logger')->notice(self::MIGRATION_STOP_MESSAGE);
 
         $this->_redirectToManageCloudinary();
     }
@@ -138,6 +147,8 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryController extends Mage_Adminhtm
                 'https://support.cloudinary.com/hc/en-us/articles/203188781-Why-is-the-migration-process-stuck-on-zero-'
             )
         );
+
+        Mage::getModel('cloudinary_cloudinary/logger')->error(self::MIGRATION_CRON_WARNING);
     }
 
     private function _displayValidationFailureMessage()

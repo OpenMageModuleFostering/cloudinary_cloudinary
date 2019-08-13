@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Cloudinary_Cloudinary>
-            <version>2.6.0</version>
+            <version>2.7.0</version>
         </Cloudinary_Cloudinary>
     </modules>
     <global>
@@ -84,7 +84,7 @@
                 <observers>
                     <upload_images_to_cloudinary>
                         <type>singleton</type>
-                        <class>cloudinary_cloudinary/observer</class>
+                        <class>cloudinary_cloudinary/observer_product</class>
                         <method>uploadImagesToCloudinary</method>
                     </upload_images_to_cloudinary>
                 </observers>
@@ -93,7 +93,7 @@
                 <observers>
                     <delete_images_from_cloudinary>
                         <type>singleton</type>
-                        <class>cloudinary_cloudinary/observer</class>
+                        <class>cloudinary_cloudinary/observer_product</class>
                         <method>deleteImagesFromCloudinary</method>
                     </delete_images_from_cloudinary>
                 </observers>
@@ -102,7 +102,7 @@
                 <observers>
                     <load_custom_autoloaders>
                         <type>singleton</type>
-                        <class>cloudinary_cloudinary/observer</class>
+                        <class>cloudinary_cloudinary/observer_system</class>
                         <method>loadCustomAutoloaders</method>
                     </load_custom_autoloaders>
                 </observers>
@@ -129,18 +129,18 @@
         <events>
             <model_config_data_save_before>
                 <observers>
-                    <validate_cloudinary_credentials>
-                        <class>cloudinary_cloudinary/observer</class>
-                        <method>validateCloudinaryCredentials</method>
-                    </validate_cloudinary_credentials>
+                    <config_save>
+                        <class>cloudinary_cloudinary/observer_config</class>
+                        <method>configSave</method>
+                    </config_save>
                 </observers>
             </model_config_data_save_before>
             <admin_system_config_changed_section_cloudinary>
                 <observers>
-                    <validate_cloudinary_credentials>
-                        <class>cloudinary_cloudinary/observer</class>
+                    <cloudinary_config_changed>
+                        <class>cloudinary_cloudinary/observer_config</class>
                         <method>cloudinaryConfigChanged</method>
-                    </validate_cloudinary_credentials>
+                    </cloudinary_config_changed>
                 </observers>
             </admin_system_config_changed_section_cloudinary>
         </events>
@@ -160,7 +160,7 @@
         <cloudinary>
             <transformations>
                 <cloudinary_fetch_format>1</cloudinary_fetch_format>
-                <cloudinary_image_quality>80</cloudinary_image_quality>
+                <cloudinary_image_quality>auto</cloudinary_image_quality>
                 <cloudinary_image_dpr>1.0</cloudinary_image_dpr>
             </transformations>
             <configuration>

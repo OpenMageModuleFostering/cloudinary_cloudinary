@@ -8,16 +8,20 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryajaxController extends Mage_Admi
     public function sampleAction()
     {
         try {
+            if (!$this->_validateSecretKey()) {
+                throw new Exception('Incorrect security key');
+            }
+
             $freeTransform = $this->getRequest()->getParam('free');
             $freeModel = Mage::getModel('cloudinary_cloudinary/system_config_free');
             $url = $freeModel->sampleImageUrl($this->defaultTransform($freeTransform));
             $this->validate($freeModel, $url);
-            $this->jsonReponse(
+            $this->jsonResponse(
                 200,
                 ['url' => $url]
             );
         } catch (\Exception $e) {
-            $this->jsonReponse(401, ['error' => $e->getMessage()]);
+            $this->jsonResponse(401, ['error' => $e->getMessage()]);
         }
     }
 
@@ -25,7 +29,7 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryajaxController extends Mage_Admi
      * @param int $code
      * @param array $payload
      */
-    private function jsonReponse($code, array $payload)
+    private function jsonResponse($code, array $payload)
     {
         $this->getResponse()
             ->clearHeaders()
