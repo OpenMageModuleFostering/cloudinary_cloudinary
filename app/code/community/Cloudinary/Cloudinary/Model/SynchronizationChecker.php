@@ -4,9 +4,6 @@ use CloudinaryExtension\Image\SynchronizationChecker as SynchronizationCheckerIn
 
 class Cloudinary_Cloudinary_Model_SynchronizationChecker implements SynchronizationCheckerInterface
 {
-    const CACHE_NAME = 'cloudinary';
-    const CACHE_TAG = 'CLOUDINARY';
-
     /**
      * @param string $imageName
      * @return bool
@@ -21,9 +18,12 @@ class Cloudinary_Cloudinary_Model_SynchronizationChecker implements Synchronizat
             return true;
         }
 
-        $cache = Mage::app()->getCacheInstance();
+        /**
+         * @var Cloudinary_Cloudinary_Model_Cache $cache
+         */
+        $cache = Mage::getSingleton('cloudinary_cloudinary/cache');
 
-        if ($cache->canUse(self::CACHE_NAME)) {
+        if ($cache->isEnabled()) {
             return $this->cachedSynchronizationCheck($cache, $imageName);
         }
 
@@ -55,26 +55,23 @@ class Cloudinary_Cloudinary_Model_SynchronizationChecker implements Synchronizat
      * @param string $imageName
      * @return string
      */
-    private function cacheKey($imageName)
+    private function getSynchronizationCacheKeyFromImageName($imageName)
     {
-        return sprintf('cloudinary_%s', md5($imageName));
+        return sprintf('cloudinary_sync_%s', md5($imageName));
     }
 
     /**
-     * @param Mage_Core_Model_Cache $cache
+     * @param Cloudinary_Cloudinary_Model_Cache $cache
      * @param string $imageName
      * @return bool
      */
-    private function cachedSynchronizationCheck(Mage_Core_Model_Cache $cache, $imageName)
+    private function cachedSynchronizationCheck(Cloudinary_Cloudinary_Model_Cache $cache, $imageName)
     {
-        $key = $this->cacheKey($imageName);
-        $value = $cache->load($key);
-
-        if ($value === false) {
-            $value = $this->synchronizationCheck($imageName) ? '1' : '0';
-            $cache->save($value, $key, [self::CACHE_TAG]);
-        }
-
-        return $value === '1' ? true : false;
+        return $cache->load(
+            $this->getSynchronizationCacheKeyFromImageName($imageName),
+            function () use ($imageName) {
+                return $this->synchronizationCheck($imageName) ? '1' : '0';
+            }
+        ) === '1' ? true : false;
     }
 }

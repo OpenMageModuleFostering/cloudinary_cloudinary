@@ -14,8 +14,29 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryajaxController extends Mage_Admi
 
             $freeTransform = $this->getRequest()->getParam('free');
             $freeModel = Mage::getModel('cloudinary_cloudinary/system_config_free');
-            $url = $freeModel->sampleImageUrl($this->defaultTransform($freeTransform));
+            $url = $freeModel->sampleImageUrl($freeModel->defaultTransform($freeTransform));
             $this->validate($freeModel, $url);
+            $this->jsonResponse(
+                200,
+                ['url' => $url]
+            );
+        } catch (\Exception $e) {
+            $this->jsonResponse(401, ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function imageAction()
+    {
+        try {
+            $freeModel = Mage::getModel('cloudinary_cloudinary/system_config_free');
+
+            $url = $freeModel->namedImageUrl(
+                $this->getRequest()->getParam('image'),
+                $freeModel->defaultTransform($this->getRequest()->getParam('free'))
+            );
+
+            $this->validate($freeModel, $url);
+
             $this->jsonResponse(
                 200,
                 ['url' => $url]
@@ -36,17 +57,6 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryajaxController extends Mage_Admi
             ->setHeader('Content-type', 'application/json')
             ->setHttpResponseCode($code)
             ->setBody(Mage::helper('core')->jsonEncode($payload));
-    }
-
-    /**
-     * @param string $freeTransforma
-     * @return Transformation
-     */
-    private function defaultTransform($freeTransform)
-    {
-        return Mage::getModel('cloudinary_cloudinary/configuration')
-            ->getDefaultTransformation()
-            ->withFreeform(Freeform::fromString($freeTransform));
     }
 
     /**

@@ -62,6 +62,11 @@ class Cloudinary_Cloudinary_Block_Adminhtml_Manage extends Mage_Adminhtml_Block_
         return $this->_cloudinaryConfig->isEnabled();
     }
 
+    public function isAutoUploadMappingEnabled()
+    {
+        return $this->_cloudinaryConfig->hasAutoUploadMapping();
+    }
+
     public function allImagesSynced()
     {
         try {
@@ -112,6 +117,11 @@ class Cloudinary_Cloudinary_Block_Adminhtml_Manage extends Mage_Adminhtml_Block_
             ));
 
         return $button->toHtml();
+    }
+
+    public function getCloudinaryConfigurationLink()
+    {
+        return Mage::helper("adminhtml")->getUrl("adminhtml/system_config/edit/section/cloudinary");
     }
 
     public function getErrors()

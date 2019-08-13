@@ -60,6 +60,17 @@ class Cloudinary_Cloudinary_Model_System_Config_Free extends Mage_Core_Model_Con
     }
 
     /**
+     * @param string $freeTransforma
+     * @return Transformation
+     */
+    public function defaultTransform($freeTransform)
+    {
+        return Mage::getModel('cloudinary_cloudinary/configuration')
+            ->getDefaultTransformation()
+            ->withFreeform(Freeform::fromString($freeTransform));
+    }
+
+    /**
      * @param Zend_Http_Response $response
      * @return string
      */
@@ -99,6 +110,28 @@ class Cloudinary_Cloudinary_Model_System_Config_Free extends Mage_Core_Model_Con
         $imageProvider = CloudinaryImageProvider::fromConfiguration($this->configuration);
         return (string)$imageProvider->retrieveTransformed(
             Image::fromPath('sample'),
+            $transformation
+        );
+    }
+
+    /**
+     * @param String $filename
+     * @param Transformation $transformation
+     * @return string
+     */
+    public function namedImageUrl($filename, Transformation $transformation)
+    {
+        if (empty($filename)) {
+            throw new RuntimeException('Error: missing image identifier');
+        }
+
+        $imageProvider = CloudinaryImageProvider::fromConfiguration($this->configuration);
+
+        return (string)$imageProvider->retrieveTransformed(
+            Image::fromPath(
+                $filename,
+                $this->configuration->isFolderedMigration() ? $this->configuration->getMigratedPath($filename) : ''
+            ),
             $transformation
         );
     }

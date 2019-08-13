@@ -8,6 +8,7 @@ class Cloudinary_Cloudinary_Helper_Reset extends Mage_Core_Helper_Abstract
     {
         $this->truncateCollection('cloudinary_cloudinary/synchronisation');
         $this->truncateCollection('cloudinary_cloudinary/migrationError');
+        $this->truncateCollection('cloudinary_cloudinary/transformation');
         $this->removeConfigurationData();
         $this->removeMigration();
         $this->clearConfigCache();

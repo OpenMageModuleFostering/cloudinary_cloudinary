@@ -153,9 +153,11 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryController extends Mage_Adminhtm
 
     private function _displayValidationFailureMessage()
     {
-        $link = '<a href="/admin/system_config/edit/section/cloudinary/">here</a>';
         $this->_getSession()->addError(
-            "Please enter your Cloudinary Credentials $link to Activate Cloudinary"
+            sprintf(
+                'Please enter your Cloudinary Credentials <a href="%s">here</a> to Activate Cloudinary',
+                Mage::helper("adminhtml")->getUrl("adminhtml/system_config/edit/section/cloudinary")
+            )
         );
     }
 }

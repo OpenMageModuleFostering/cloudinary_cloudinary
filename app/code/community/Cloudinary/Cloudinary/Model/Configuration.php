@@ -164,7 +164,7 @@ class Cloudinary_Cloudinary_Model_Configuration implements ConfigurationInterfac
     /**
      * @return bool
      */
-    private function hasAutoUploadMapping()
+    public function hasAutoUploadMapping()
     {
         return Mage::getModel('cloudinary_cloudinary/autoUploadMapping_configuration')->isActive();
     }

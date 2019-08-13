@@ -26,8 +26,8 @@
                     <show_in_store>1</show_in_store>
                     <fields>
                         <cloudinary_environment_variable translate="label comment">
-                            <label>Cloudinary Account Credentials (CLOUDINARY_URL)</label>
-                            <comment>Set the credentials of your Cloudinary account. Copy the credentials string from the dashboard of Cloudinary's Management Console. It is available as the Environment variable of CLOUDINARY_URL.</comment>
+                            <label>Cloudinary Account Credentials</label>
+                            <comment>Set the credentials of your Cloudinary account. Copy the "Environment variable" string from the dashboard of Cloudinary's Management Console.</comment>
                             <frontend_type>password</frontend_type>
                             <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
                             <sort_order>1</sort_order>

@@ -85,6 +85,7 @@ class Transformation
     public function build()
     {
         return [
+            ['raw_transformation' => (string)$this->freeform],
             [
                 'fetch_format' => (string)$this->fetchFormat,
                 'quality' => (string)$this->quality,
@@ -94,8 +95,7 @@ class Transformation
                 'height' => $this->dimensions ? $this->dimensions->getHeight() : null,
                 'dpr' => (string)$this->dpr,
                 'flags' => $this->flags
-            ],
-            ['raw_transformation' => (string)$this->freeform]
+            ]
         ];
     }
 }

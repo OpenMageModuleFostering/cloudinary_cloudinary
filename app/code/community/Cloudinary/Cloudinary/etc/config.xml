@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Cloudinary_Cloudinary>
-            <version>2.7.0</version>
+            <version>2.8.1</version>
         </Cloudinary_Cloudinary>
     </modules>
     <global>
@@ -47,6 +47,9 @@
                     <migrationError>
                       <table>cloudinary_migration_error</table>
                     </migrationError>
+                    <transformation>
+                        <table>cloudinary_transformation</table>
+                    </transformation>
                 </entities>
             </cloudinary_resource>
         </models>
@@ -76,7 +79,6 @@
             </catalog>
             <cloudinary_cloudinary>
                 <class>Cloudinary_Cloudinary_Helper</class>
-
             </cloudinary_cloudinary>
         </helpers>
         <events>
@@ -119,7 +121,7 @@
             <types>
                 <cloudinary translate="label,description" module="cloudinary">
                     <label>Cloudinary</label>
-                    <description>Cache of all images migrated to Cloudinary. Not required when using auto upload mapping.</description>
+                    <description>Cache of all product image transformations and all images migrated to Cloudinary.</description>
                     <tags>CLOUDINARY</tags>
                 </cloudinary>
             </types>
@@ -143,6 +145,14 @@
                     </cloudinary_config_changed>
                 </observers>
             </admin_system_config_changed_section_cloudinary>
+            <catalog_product_save_before>
+                <observers>
+                    <product_before_save>
+                        <class>cloudinary_cloudinary/adminProductObserver</class>
+                        <method>beforeProductSave</method>
+                    </product_before_save>
+                </observers>
+            </catalog_product_save_before>
         </events>
     </adminhtml>
     <admin>
