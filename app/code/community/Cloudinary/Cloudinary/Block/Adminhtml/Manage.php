@@ -71,19 +71,6 @@ class Cloudinary_Cloudinary_Block_Adminhtml_Manage extends Mage_Adminhtml_Block_
         }
     }
 
-    public function getEnableButton()
-    {
-        if ($this->_cloudinaryConfig->isEnabled()) {
-            $enableLabel = 'Disable Cloudinary';
-            $enableAction = 'disableCloudinary';
-        } else {
-            $enableLabel = 'Enable Cloudinary';
-            $enableAction = 'enableCloudinary';
-        }
-
-        return $this->_makeButton($enableLabel, $enableAction);
-    }
-
     public function getMigrateButton()
     {
         if ($this->_migrationTask->hasStarted()) {

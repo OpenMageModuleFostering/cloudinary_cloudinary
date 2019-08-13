@@ -15,7 +15,7 @@ use CloudinaryExtension\UploadConfig;
 
 class Cloudinary_Cloudinary_Model_Configuration implements ConfigurationInterface
 {
-    const CONFIG_PATH_ENABLED = 'cloudinary/cloud/cloudinary_enabled';
+    const CONFIG_PATH_ENABLED = 'cloudinary/setup/cloudinary_enabled';
     const STATUS_ENABLED = 1;
     const STATUS_DISABLED = 0;
     const USER_PLATFORM_TEMPLATE = 'CloudinaryMagento/%s (Magento %s)';

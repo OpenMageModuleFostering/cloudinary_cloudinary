@@ -2,12 +2,10 @@
 
 use CloudinaryExtension\CloudinaryImageProvider;
 use CloudinaryExtension\CredentialValidator;
-use CloudinaryExtension\Exception\InvalidCredentials;
 use CloudinaryExtension\Image;
 use CloudinaryExtension\Security\CloudinaryEnvironmentVariable;
 use CloudinaryExtension\AutoUploadMapping\RequestProcessor;
 use CloudinaryExtension\AutoUploadMapping\ApiClient;
-use Cloudinary\Api;
 use Mage_Adminhtml_Model_Config_Data as ConfigData;
 use Mage_Catalog_Model_Product as Product;
 use Varien_Event_Observer as EventObserver;
@@ -69,16 +67,21 @@ class Cloudinary_Cloudinary_Model_Observer extends Mage_Core_Model_Abstract
      */
     public function validateCloudinaryCredentials(EventObserver $observer)
     {
-        $credentialValidator = new CredentialValidator();
-
         $configObject = $observer->getEvent()->getObject();
-        if ($configObject->getSection() == self::CLOUDINARY_CONFIG_SECTION) {
-            $configData = $this->flattenConfigData($configObject);
+        if ($configObject->getSection() != self::CLOUDINARY_CONFIG_SECTION) {
+            return;
+        }
 
-            $environmentVariable = CloudinaryEnvironmentVariable::fromString($configData['cloudinary_environment_variable']);
-            if (!$credentialValidator->validate($environmentVariable->getCredentials())) {
-                Mage::getSingleton('adminhtml/session')->addError(self::ERROR_WRONG_CREDENTIALS);
-            }
+        $configData = $this->flattenConfigData($configObject);
+        if ($configData['cloudinary_enabled'] != '1') {
+            return;
+        }
+
+        $credentialValidator = new CredentialValidator();
+        $environmentVariable = CloudinaryEnvironmentVariable::fromString($configData['cloudinary_environment_variable']);
+
+        if (!$credentialValidator->validate($environmentVariable->getCredentials())) {
+            throw new Mage_Core_Exception(self::ERROR_WRONG_CREDENTIALS);
         }
     }
 
@@ -87,6 +90,10 @@ class Cloudinary_Cloudinary_Model_Observer extends Mage_Core_Model_Abstract
      */
     public function cloudinaryConfigChanged(EventObserver $observer)
     {
+        if (!Mage::getModel('cloudinary_cloudinary/configuration')->isEnabled()) {
+            return;
+        }
+
         if (!$this->autoUploadRequestProcessor()->handle('media', Mage::getBaseUrl('media'))) {
             Mage::getSingleton('adminhtml/session')->addError(self::AUTO_UPLOAD_SETUP_FAIL_MESSAGE);
         }

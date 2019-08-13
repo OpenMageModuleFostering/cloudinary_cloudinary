@@ -5,8 +5,12 @@
             <title>Cloudinary</title>
             <sort_order>75</sort_order>
             <children>
+                <configuration>
+                    <title>Configuration</title>
+                    <action>adminhtml/system_config/edit/section/cloudinary</action>
+                </configuration>
                 <cloudinary module="cloudinary_cloudinary">
-                    <title>Manage</title>
+                    <title>Manual Migration</title>
                     <action>adminhtml/cloudinary</action>
                 </cloudinary>
                 <log>
@@ -16,6 +20,10 @@
                 <console module="cloudinary_cloudinary">
                     <title>Open Cloudinary Console</title>
                 </console>
+                <reset module="cloudinary_cloudinary">
+                    <title>Remove all data</title>
+                    <action>adminhtml/cloudinaryreset</action>
+                </reset>
             </children>
         </cloudinary_cloudinary>
     </menu>
@@ -29,8 +37,11 @@
                     <cloudinary_cloudinary module="cloudinary_cloudinary">
                         <title>Cloudinary</title>
                         <children>
+                            <configuration>
+                                <title>Configuration</title>
+                            </configuration>
                             <cloudinary module="cloudinary_cloudinary">
-                                <title>Manage</title>
+                                <title>Manual Migration</title>
                             </cloudinary>
                             <log>
                                 <title>Logs</title>
@@ -38,6 +49,9 @@
                             <console module="cloudinary_cloudinary">
                                 <title>Open Cloudinary Console</title>
                             </console>
+                            <reset module="cloudinary_cloudinary">
+                                <title>Remove all data</title>
+                            </reset>
                         </children>
                     </cloudinary_cloudinary>
                     <system>

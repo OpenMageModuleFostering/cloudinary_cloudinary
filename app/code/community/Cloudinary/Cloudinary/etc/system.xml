@@ -35,6 +35,16 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </cloudinary_environment_variable>
+                        <cloudinary_enabled>
+                            <label>Enable Cloudinary</label>
+                            <comment>When Cloudinary is enabled, images will be served from Cloudinary (where available). When disabled, images will be served locally.</comment>
+                            <frontend_type>select</frontend_type>
+                            <sort_order>2</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                        </cloudinary_enabled>
                     </fields>
                 </setup>
                 <configuration translate="label">
@@ -54,17 +64,6 @@
                             <show_in_store>1</show_in_store>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                         </cloudinary_cdn_subdomain>
-                        <cloudinary_foldered_migration>
-                            <label>Migrate images to folders relative to the magento root folder</label>
-                            <comment>When enabled, cloudinary migration will clone the folder structure of the images relative to the magento root folder. This setting is not available when using Auto Upload Mapping.</comment>
-                            <frontend_type>select</frontend_type>
-                            <sort_order>5</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <frontend_model>cloudinary_cloudinary/adminhtml_system_config_form_foldered</frontend_model>
-                        </cloudinary_foldered_migration>
                         <cloudinary_auto_upload_mapping_request>
                             <label>Use auto upload mapping to upload images</label>
                             <comment>When enabled, Cloudinary will fetch images it does not have from your site automatically without requiring the manual migration process. Please clear the block and page cache to start this process.</comment>

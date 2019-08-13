@@ -14,6 +14,12 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryController extends Mage_Adminhtm
      */
     private $_cloudinaryConfig;
 
+    private function configurePage()
+    {
+        $this->_title($this->__('Manual Migration'))
+            ->_setActiveMenu('cloudinary_cloudinary/manage');
+    }
+
     public function preDispatch()
     {
         $this->_migrationTask = Mage::getModel('cloudinary_cloudinary/migration')->load(Cloudinary_Cloudinary_Model_Migration::CLOUDINARY_MIGRATION_ID);
@@ -29,6 +35,7 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryController extends Mage_Adminhtm
         $this->_displayMigrationMessages();
 
         $layout = $this->loadLayout();
+        $this->configurePage();
 
         if (!$this->_cloudinaryConfig->validateCredentials()) {
             $this->_displayValidationFailureMessage();
@@ -79,23 +86,6 @@ class Cloudinary_Cloudinary_Adminhtml_CloudinaryController extends Mage_Adminhtm
     public function stopMigrationAction()
     {
         $this->_migrationTask->stop();
-
-        $this->_redirectToManageCloudinary();
-    }
-
-    public function enableCloudinaryAction()
-    {
-        if (!$this->_cloudinaryConfig->validateCredentials()) {
-            $this->_getSession()->addError('Validating credentials failed. Cloudinary stays disabled');
-        } else {
-            $this->_cloudinaryConfig->enable();
-        }
-        $this->_redirectToManageCloudinary();
-    }
-
-    public function disableCloudinaryAction()
-    {
-        $this->_cloudinaryConfig->disable();
 
         $this->_redirectToManageCloudinary();
     }
