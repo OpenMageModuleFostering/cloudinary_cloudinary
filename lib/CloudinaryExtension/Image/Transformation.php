@@ -17,17 +17,12 @@ class Transformation
     private $crop;
     private $fetchFormat;
     private $quality;
-    private $format;
     private $dpr;
-    private $validFormats;
     private $flags;
 
     public function __construct()
     {
-        $this->fetchFormat = FetchFormat::fromString(Format::FETCH_FORMAT_AUTO);
         $this->crop = 'pad';
-        $this->format = Format::fromExtension('jpg');
-        $this->validFormats = array('gif', 'jpg', 'png', 'svg', 'webp');
         $this->flags = [];
     }
 
@@ -56,21 +51,6 @@ class Transformation
         return $this;
     }
 
-    public function withFormat(Format $format)
-    {
-        if (in_array((string)$format, $this->validFormats)) {
-            $this->format = $format;
-        }
-
-        return $this;
-    }
-
-    public function withoutFormat()
-    {
-        $this->format = null;
-        return $this;
-    }
-
     public function withQuality(Quality $quality)
     {
         $this->quality = $quality;
@@ -81,11 +61,6 @@ class Transformation
     {
         $this->dpr = $dpr;
         return $this;
-    }
-
-    public function withOptimisationDisabled()
-    {
-        return $this->withFetchFormat(FetchFormat::fromString(''));
     }
 
     public function addFlags(array $flags = [])
@@ -108,7 +83,6 @@ class Transformation
             'gravity' => (string)$this->gravity ?: null,
             'width' => $this->dimensions ? $this->dimensions->getWidth() : null,
             'height' => $this->dimensions ? $this->dimensions->getHeight() : null,
-            'format' => (string)$this->format,
             'dpr' => (string)$this->dpr,
             'flags' => $this->flags
         );

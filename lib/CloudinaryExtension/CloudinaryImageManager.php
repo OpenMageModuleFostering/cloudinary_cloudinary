@@ -1,5 +1,9 @@
 <?php
+
 namespace CloudinaryExtension;
+
+use CloudinaryExtension\Exception\FileExists;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Class CloudinaryImageManager
@@ -7,6 +11,11 @@ namespace CloudinaryExtension;
  */
 class CloudinaryImageManager
 {
+    const MESSAGE_UPLOADING_IMAGE = 'Uploading image: %s';
+    const MESSAGE_UPLOADED_EXISTS = 'Image exists - marked as synchronised: %s';
+    const MESSAGE_RETRY = 'Failed with error: %s - attempting retry %d';
+    const MAXIMUM_RETRY_ATTEMPTS = 3;
+
     /**
      * @var ImageProvider
      */
@@ -33,12 +42,29 @@ class CloudinaryImageManager
 
     /**
      * @param Image $image
+     * @param OutputInterface|null $output
+     * @throws \Exception
      */
-    public function uploadAndSynchronise(Image $image)
+    public function uploadAndSynchronise(Image $image, OutputInterface $output = null, $retryAttempt = 0)
     {
-        $this->cloudinaryImageProvider->upload($image);
-        $this->synchronisationRepository->saveAsSynchronized($image->getRelativePath());
+        try {
+            $this->report($output, sprintf(self::MESSAGE_UPLOADING_IMAGE, $image));
+            $this->cloudinaryImageProvider->upload($image);
+        } catch (FileExists $e) {
+            $this->report($output, sprintf(self::MESSAGE_UPLOADED_EXISTS, $image));
+        } catch (\Exception $e) {
+            if ($retryAttempt < self::MAXIMUM_RETRY_ATTEMPTS) {
+                $retryAttempt++;
+                $this->report($output, sprintf(self::MESSAGE_RETRY, $e->getMessage(), $retryAttempt));
+                usleep(rand(10, 1000) * 1000);
+                $this->uploadAndSynchronise($image, $output, $retryAttempt);
+                return;
+            }
 
+            throw $e;
+        }
+
+        $this->synchronisationRepository->saveAsSynchronized($image->getRelativePath());
     }
 
     /**
@@ -48,5 +74,16 @@ class CloudinaryImageManager
     {
         $this->cloudinaryImageProvider->delete($image);
         $this->synchronisationRepository->removeSynchronised($image->getRelativePath());
+    }
+
+    /**
+     * @param OutputInterface|null $output
+     * @param string $message
+     */
+    private function report(OutputInterface $output = null, $message = '')
+    {
+        if ($output) {
+            $output->writeln($message);
+        }
     }
 }

@@ -40,11 +40,20 @@ class Image implements ImageInterface
 
     public function getId()
     {
-        if ($this->relativePath) {
-            return $this->getRelativeFolder() . DIRECTORY_SEPARATOR . $this->pathInfo['filename'];
-        } else {
-            return $this->pathInfo['filename'];
-        }
+        return sprintf(
+            '%s%s',
+            $this->relativePath ? ($this->getRelativeFolder() . DIRECTORY_SEPARATOR) : '',
+            $this->pathInfo['basename']
+        );
+    }
+
+    public function getIdWithoutExtension()
+    {
+        return sprintf(
+            '%s%s',
+            $this->relativePath ? ($this->getRelativeFolder() . DIRECTORY_SEPARATOR) : '',
+            $this->pathInfo['filename']
+        );
     }
 
     public function getExtension()

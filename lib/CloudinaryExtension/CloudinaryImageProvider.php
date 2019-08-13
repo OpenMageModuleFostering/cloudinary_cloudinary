@@ -5,8 +5,7 @@ namespace CloudinaryExtension;
 
 use Cloudinary;
 use Cloudinary\Uploader;
-use CloudinaryExtension\Exception\FileAlreadyExists;
-use CloudinaryExtension\Exception\MigrationError;
+use CloudinaryExtension\Exception\ApiError;
 use CloudinaryExtension\Image\Transformation;
 use CloudinaryExtension\Security;
 use CloudinaryExtension\Image\Transformation\Format;
@@ -52,17 +51,18 @@ class CloudinaryImageProvider implements ImageProvider
 
     public function upload(Image $image)
     {
+        $uploadResult = null;
+
         try {
             $uploadResult = Uploader::upload(
                 (string)$image,
                 $this->configuration->getUploadConfig()->toArray() + [ "folder" => $image->getRelativeFolder()]
             );
-
-            return $this->uploadResponseValidator->validateResponse($image, $uploadResult);
-
         } catch (\Exception $e) {
-            MigrationError::throwWith($image, MigrationError::CODE_API_ERROR, $e->getMessage());
+            ApiError::throwWith($image, $e->getMessage());
         }
+
+        return $this->uploadResponseValidator->validateResponse($image, $uploadResult);
     }
 
     public function retrieveTransformed(Image $image, Transformation $transformation)
@@ -80,7 +80,7 @@ class CloudinaryImageProvider implements ImageProvider
 
     public function delete(Image $image)
     {
-        Uploader::destroy($image->getId());
+        Uploader::destroy($image->getIdWithoutExtension());
     }
 
     public function validateCredentials()

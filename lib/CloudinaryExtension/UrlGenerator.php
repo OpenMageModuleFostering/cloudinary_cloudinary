@@ -41,13 +41,10 @@ class UrlGenerator
             return (string)$image;
         }
 
-        $transformation = clone ($transformation ?:  $this->configuration->getDefaultTransformation());
-
-        if (in_array($image->getExtension(), $this->configuration->getFormatsToPreserve())) {
-            $transformation->withoutFormat();
-        }
-
-        return (string)$this->imageProvider->retrieveTransformed($image, $transformation);
+        return (string)$this->imageProvider->retrieveTransformed(
+            $image,
+            $transformation ?: $this->configuration->getDefaultTransformation()
+        );
     }
 
     /**
@@ -58,7 +55,7 @@ class UrlGenerator
      */
     public function generateWithDimensions(ImageInterface $image, Dimensions $dimensions)
     {
-        $transformation = clone $this->configuration->getDefaultTransformation();
+        $transformation = $this->configuration->getDefaultTransformation();
 
         return $this->generateFor($image, $transformation->withDimensions($dimensions));
     }

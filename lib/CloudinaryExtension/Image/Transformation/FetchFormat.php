@@ -13,6 +13,11 @@ class FetchFormat
         $this->value = $value;
     }
 
+    public static function auto()
+    {
+        return self::fromString(self::FETCH_FORMAT_AUTO);
+    }
+
     public static function fromString($value)
     {
         return new FetchFormat($value);
