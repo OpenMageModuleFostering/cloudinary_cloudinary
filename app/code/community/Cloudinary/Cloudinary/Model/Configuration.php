@@ -152,7 +152,15 @@ class Cloudinary_Cloudinary_Model_Configuration implements ConfigurationInterfac
 
     public function isFolderedMigration()
     {
-        return Mage::getStoreConfigFlag(self::CONFIG_FOLDERED_MIGRATION);
+        return $this->hasAutoUploadMapping() || Mage::getStoreConfigFlag(self::CONFIG_FOLDERED_MIGRATION);
+    }
+
+    /**
+     * @return bool
+     */
+    private function hasAutoUploadMapping()
+    {
+        return Mage::getModel('cloudinary_cloudinary/autoUploadMapping_configuration')->isActive();
     }
 
     private function setStoreConfig($configPath, $value)

@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Cloudinary_Cloudinary>
-            <version>2.2.0</version>
+            <version>2.3.0</version>
         </Cloudinary_Cloudinary>
     </modules>
     <global>
@@ -126,6 +126,14 @@
                     </validate_cloudinary_credentials>
                 </observers>
             </model_config_data_save_before>
+            <admin_system_config_changed_section_cloudinary>
+                <observers>
+                    <validate_cloudinary_credentials>
+                        <class>cloudinary_cloudinary/observer</class>
+                        <method>cloudinaryConfigChanged</method>
+                    </validate_cloudinary_credentials>
+                </observers>
+            </admin_system_config_changed_section_cloudinary>
         </events>
     </adminhtml>
     <admin>

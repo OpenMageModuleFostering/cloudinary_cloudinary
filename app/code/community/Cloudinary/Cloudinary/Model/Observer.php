@@ -5,6 +5,9 @@ use CloudinaryExtension\CredentialValidator;
 use CloudinaryExtension\Exception\InvalidCredentials;
 use CloudinaryExtension\Image;
 use CloudinaryExtension\Security\CloudinaryEnvironmentVariable;
+use CloudinaryExtension\AutoUploadMapping\RequestProcessor;
+use CloudinaryExtension\AutoUploadMapping\ApiClient;
+use Cloudinary\Api;
 use Mage_Adminhtml_Model_Config_Data as ConfigData;
 use Mage_Catalog_Model_Product as Product;
 use Varien_Event_Observer as EventObserver;
@@ -13,6 +16,7 @@ class Cloudinary_Cloudinary_Model_Observer extends Mage_Core_Model_Abstract
 {
     const CLOUDINARY_CONFIG_SECTION = 'cloudinary';
     const ERROR_WRONG_CREDENTIALS = 'There was a problem validating your Cloudinary credentials.';
+    const AUTO_UPLOAD_SETUP_FAIL_MESSAGE = 'Error. Unable to setup auto upload mapping.';
 
     /**
      * @param  EventObserver $event
@@ -70,7 +74,28 @@ class Cloudinary_Cloudinary_Model_Observer extends Mage_Core_Model_Abstract
                 Mage::getSingleton('adminhtml/session')->addError(self::ERROR_WRONG_CREDENTIALS);
             }
         }
-    }   
+    }
+
+    /**
+     * @param Varien_Event_Observer $observer
+     */
+    public function cloudinaryConfigChanged(EventObserver $observer)
+    {
+        if (!$this->autoUploadRequestProcessor()->handle('media', Mage::getBaseUrl('media'))) {
+            Mage::getSingleton('adminhtml/session')->addError(self::AUTO_UPLOAD_SETUP_FAIL_MESSAGE);
+        }
+    }
+
+    /**
+     * @return RequestProcessor
+     */
+    private function autoUploadRequestProcessor()
+    {
+        return new RequestProcessor(
+            Mage::getModel('cloudinary_cloudinary/autoUploadMapping_configuration'),
+            ApiClient::fromConfiguration(Mage::getModel('cloudinary_cloudinary/configuration'))
+        );
+    }
 
     /**
      * @param  Product $product
