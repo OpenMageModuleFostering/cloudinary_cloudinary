@@ -28,6 +28,8 @@ class Cloudinary_Cloudinary_Model_Configuration implements ConfigurationInterfac
     const CONFIG_CDN_SUBDOMAIN = 'cloudinary/configuration/cloudinary_cdn_subdomain';
     const CONFIG_FOLDERED_MIGRATION = 'cloudinary/configuration/cloudinary_foldered_migration';
     const CONFIG_GLOBAL_FREEFORM = 'cloudinary/transformations/cloudinary_free_transform_global';
+    const CONFIG_LOG_ACTIVE = 'cloudinary/log/cloudinary_log_active';
+    const CONFIG_LOG_FILENAME = 'cloudinary/log/cloudinary_log_filename';
 
     private $environmentVariable;
 
@@ -165,6 +167,22 @@ class Cloudinary_Cloudinary_Model_Configuration implements ConfigurationInterfac
     private function hasAutoUploadMapping()
     {
         return Mage::getModel('cloudinary_cloudinary/autoUploadMapping_configuration')->isActive();
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasLoggingActive()
+    {
+        return Mage::getStoreConfig(self::CONFIG_LOG_ACTIVE) == "1";
+    }
+
+    /**
+     * @return string
+     */
+    public function getLoggingFilename()
+    {
+        return Mage::getStoreConfig(self::CONFIG_LOG_FILENAME);
     }
 
     private function setStoreConfig($configPath, $value)

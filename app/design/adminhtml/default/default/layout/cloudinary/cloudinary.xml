@@ -14,4 +14,18 @@
             </action>
         </reference>
     </adminhtml_cloudinary_index>
+    <adminhtml_cloudinarylog_index>
+        <reference name="content">
+            <block type="cloudinary_cloudinary/adminhtml_log" name="cloudinary_log" template="cloudinary/log.phtml"></block>
+        </reference>
+        <reference name="head">
+            <action method="addItem">
+                <type>js_css</type>
+                <name>prototype/windows/themes/default.css</name>
+            </action>
+            <action method="addCss">
+                <name>lib/prototype/windows/themes/magento.css</name>
+            </action>
+        </reference>
+    </adminhtml_cloudinarylog_index>
 </layout>

@@ -49,7 +49,13 @@ class Cloudinary_Cloudinary_Model_Observer extends Mage_Core_Model_Abstract
      */
     public function deleteImagesFromCloudinary(EventObserver $event)
     {
+        /** @var ConfigurationInterface $configuration */
         $configuration = Mage::getModel('cloudinary_cloudinary/configuration');
+
+        if (!$configuration->isEnabled()) {
+            return;
+        }
+
         $imageProvider = CloudinaryImageProvider::fromConfiguration($configuration);
 
         foreach ($this->getImagesToDelete($event->getProduct()) as $image) {
