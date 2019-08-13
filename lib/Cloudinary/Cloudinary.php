@@ -10,9 +10,9 @@ class Cloudinary {
     const RANGE_VALUE_RE = '/^(?P<value>(\d+\.)?\d+)(?P<modifier>[%pP])?$/';
     const RANGE_RE = '/^(\d+\.)?\d+[%pP]?\.\.(\d+\.)?\d+[%pP]?$/';
 
-    const VERSION = "1.1.1";
+    const VERSION = "1.1.4";
     /** @internal Do not change this value */
-    const USER_AGENT = "CloudinaryPHP/1.1.1";
+    const USER_AGENT = "CloudinaryPHP/1.1.4";
 
     /**
      * Additional information to be passed with the USER_AGENT, e.g. "CloudinaryMagento/1.0.1". This value is set in platform-specific
@@ -236,26 +236,28 @@ class Cloudinary {
           "w"   => $width);
 
         $simple_params = array(
-          "ac" => "audio_codec",
-          "af" => "audio_frequency",
-          "br" => "bit_rate",
-          "cs" => "color_space",
-          "d"  => "default_image",
-          "dl" => "delay",
-          "dn" => "density",
-          "f"  => "fetch_format",
-          "g"  => "gravity",
-          "l"  => "overlay",
-          "o"  => "opacity",
-          "p"  => "prefix",
-          "pg" => "page",
-          "q"  => "quality",
-          "r"  => "radius",
-          "u"  => "underlay",
-          "vs" => "video_sampling",
-          "x"  => "x",
-          "y"  => "y",
-          "z"  => "zoom");
+            "ac" => "audio_codec",
+            "af" => "audio_frequency",
+            "ar" => "aspect_ratio",
+            "br" => "bit_rate",
+            "cs" => "color_space",
+            "d"  => "default_image",
+            "dl" => "delay",
+            "dn" => "density",
+            "f"  => "fetch_format",
+            "g"  => "gravity",
+            "l"  => "overlay",
+            "o"  => "opacity",
+            "p"  => "prefix",
+            "pg" => "page",
+            "q"  => "quality",
+            "r"  => "radius",
+            "u"  => "underlay",
+            "vs" => "video_sampling",
+            "x"  => "x",
+            "y"  => "y",
+            "z"  => "zoom"
+        );
 
         foreach ($simple_params as $param=>$option) {
             $params[$param] = Cloudinary::option_consume($options, $option);

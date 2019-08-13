@@ -246,7 +246,6 @@ class Api {
   
   # Based on http://snipplr.com/view/17242/
   protected function execute($ch) {
-      \Mage::log(\Cloudinary::userAgent());
     $string = curl_exec($ch);
     $headers = array();
     $content = '';

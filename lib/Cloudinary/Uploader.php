@@ -138,17 +138,19 @@ namespace Cloudinary {
         public static function explicit($public_id, $options = array())
         {
             $params = array(
-                "timestamp" => time(),
-                "public_id" => $public_id,
-                "type" => \Cloudinary::option_get($options, "type"),
                 "callback" => \Cloudinary::option_get($options, "callback"),
+                "context" => \Cloudinary::encode_assoc_array(\Cloudinary::option_get($options, "context")),
+                "custom_coordinates" => \Cloudinary::encode_double_array(\Cloudinary::option_get($options, "custom_coordinates")),
                 "eager" => Uploader::build_eager(\Cloudinary::option_get($options, "eager")),
                 "eager_async" => \Cloudinary::option_get($options, "eager_async"),
                 "eager_notification_url" => \Cloudinary::option_get($options, "eager_notification_url"),
-                "headers" => Uploader::build_custom_headers(\Cloudinary::option_get($options, "headers")),
-                "tags" => \Cloudinary::encode_array(\Cloudinary::option_get($options, "tags")),
                 "face_coordinates" => \Cloudinary::encode_double_array(\Cloudinary::option_get($options, "face_coordinates")),
-                "custom_coordinates" => \Cloudinary::encode_double_array(\Cloudinary::option_get($options, "custom_coordinates"))
+                "headers" => Uploader::build_custom_headers(\Cloudinary::option_get($options, "headers")),
+                "invalidate" => \Cloudinary::option_get($options, "invalidate"),
+                "public_id" => $public_id,
+                "tags" => \Cloudinary::encode_array(\Cloudinary::option_get($options, "tags")),
+                "timestamp" => time(),
+                "type" => \Cloudinary::option_get($options, "type")
             );
             return Uploader::call_api("explicit", $params, $options);
         }
@@ -245,12 +247,20 @@ namespace Cloudinary {
 
             $api_url = \Cloudinary::cloudinary_api_url($action, $options);
 
-            # Serialize params
-            $api_url .= "?" . preg_replace("/%5B\d+%5D/", "%5B%5D", http_build_query($params)); 
-
             $ch = curl_init($api_url);
 
             $post_params = array();
+            foreach ($params as $key => $value) {
+                if (is_array($value)) {
+                    $i = 0;
+                    foreach ($value as $item) {
+                        $post_params[$key . "[$i]"] = $item;
+                        $i++;
+                    }
+                } else {
+                    $post_params[$key] = $value;
+                }
+            }
             if ($file) {
                 if (!preg_match('/^@|^ftp:|^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$/', $file)) {
                     if (function_exists("curl_file_create")) {
@@ -266,10 +276,10 @@ namespace Cloudinary {
 
             curl_setopt($ch, CURLOPT_POST, true);
             $timeout = \Cloudinary::option_get($options, "timeout", \Cloudinary::config_get("timeout", 60));
-            curl_setopt($ch, CURLOPT_TIMEOUT_MS, $timeout * 1000);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $post_params);
             curl_setopt($ch, CURLOPT_CAINFO,realpath(dirname(__FILE__)).DIRECTORY_SEPARATOR."cacert.pem");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); # no effect since PHP 5.1.3
             curl_setopt($ch, CURLOPT_USERAGENT, \Cloudinary::userAgent());
             curl_setopt($ch, CURLOPT_PROXY, \Cloudinary::option_get($options, "api_proxy", \Cloudinary::config_get("api_proxy")));
 
@@ -277,7 +287,7 @@ namespace Cloudinary {
             if ($range != NULL){
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Range: '.$range));
             }
-            \Mage::log(\Cloudinary::userAgent());
+            
             $response = curl_exec($ch);
             $curl_error = NULL;
             if(curl_errno($ch))
@@ -312,7 +322,7 @@ namespace Cloudinary {
             $eager = array();
             foreach (\Cloudinary::build_array($transformations) as $trans) {
                 $transformation = $trans;
-                $format = \Cloudinary::option_consume($tranformation, "format");
+                $format = \Cloudinary::option_consume($transformation, "format");
                 $single_eager = implode("/", array_filter(array(\Cloudinary::generate_transformation_string($transformation), $format)));
                 array_push($eager, $single_eager);
             }
