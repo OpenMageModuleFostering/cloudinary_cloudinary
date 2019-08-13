@@ -2,10 +2,12 @@
 
 namespace CloudinaryExtension;
 
-class Image
+class Image implements ImageInterface
 {
     private $imagePath;
+
     private $relativePath;
+
     private $pathInfo;
 
     private function __construct($imagePath, $relativePath = '')
@@ -39,7 +41,7 @@ class Image
     public function getId()
     {
         if ($this->relativePath) {
-            return $this->getRelativeFolder() . DS . $this->pathInfo['filename'];
+            return $this->getRelativeFolder() . DIRECTORY_SEPARATOR . $this->pathInfo['filename'];
         } else {
             return $this->pathInfo['filename'];
         }

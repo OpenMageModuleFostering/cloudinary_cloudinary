@@ -44,7 +44,8 @@ namespace Cloudinary {
                 "type" => \Cloudinary::option_get($options, "type"),
                 "unique_filename" => \Cloudinary::option_get($options, "unique_filename"),
                 "upload_preset" => \Cloudinary::option_get($options, "upload_preset"),
-                "use_filename" => \Cloudinary::option_get($options, "use_filename")
+                "use_filename" => \Cloudinary::option_get($options, "use_filename"),
+                "responsive_breakpoints" => Uploader::build_responsive_breakpoints(\Cloudinary::option_get($options, "responsive_breakpoints"))
             );
             array_walk($params, function (&$value, $key){ $value = (is_bool($value) ? ($value ? "1" : "0") : $value);});
             return array_filter($params,function($v){ return !is_null($v) && ($v !== "" );});
@@ -130,28 +131,17 @@ namespace Cloudinary {
                 "type" => \Cloudinary::option_get($options, "type"),
                 "from_public_id" => $from_public_id,
                 "to_public_id" => $to_public_id,
-                "overwrite" => \Cloudinary::option_get($options, "overwrite")
+                "invalidate" => \Cloudinary::option_get($options, "invalidate"),
+                "overwrite" => \Cloudinary::option_get($options, "overwrite"),
+                "to_type" => \Cloudinary::option_get($options, "to_type"),
             );
             return Uploader::call_api("rename", $params, $options);
         }
         
         public static function explicit($public_id, $options = array())
         {
-            $params = array(
-                "callback" => \Cloudinary::option_get($options, "callback"),
-                "context" => \Cloudinary::encode_assoc_array(\Cloudinary::option_get($options, "context")),
-                "custom_coordinates" => \Cloudinary::encode_double_array(\Cloudinary::option_get($options, "custom_coordinates")),
-                "eager" => Uploader::build_eager(\Cloudinary::option_get($options, "eager")),
-                "eager_async" => \Cloudinary::option_get($options, "eager_async"),
-                "eager_notification_url" => \Cloudinary::option_get($options, "eager_notification_url"),
-                "face_coordinates" => \Cloudinary::encode_double_array(\Cloudinary::option_get($options, "face_coordinates")),
-                "headers" => Uploader::build_custom_headers(\Cloudinary::option_get($options, "headers")),
-                "invalidate" => \Cloudinary::option_get($options, "invalidate"),
-                "public_id" => $public_id,
-                "tags" => \Cloudinary::encode_array(\Cloudinary::option_get($options, "tags")),
-                "timestamp" => time(),
-                "type" => \Cloudinary::option_get($options, "type")
-            );
+            $options["public_id"] = $public_id;
+            $params = Uploader::build_upload_params($options);
             return Uploader::call_api("explicit", $params, $options);
         }
 
@@ -197,12 +187,9 @@ namespace Cloudinary {
             return Uploader::call_api("explode", $params, $options);
         }
 
-        // options may include 'exclusive' (boolean) which causes clearing this tag from all other resources
         public static function add_tag($tag, $public_ids = array(), $options = array())
         {
-            $exclusive = \Cloudinary::option_get($options, "exclusive");
-            $command = $exclusive ? "set_exclusive" : "add";
-            return Uploader::call_tags_api($tag, $command, $public_ids, $options);
+            return Uploader::call_tags_api($tag, "add", $public_ids, $options);
         }
 
         public static function remove_tag($tag, $public_ids = array(), $options = array())
@@ -227,6 +214,26 @@ namespace Cloudinary {
             return Uploader::call_api("tags", $params, $options);
         }
 
+        public static function add_context($context, $public_ids = array(), $options = array()) {
+          return Uploader::call_context_api($context, 'add', $public_ids, $options);
+        }
+
+        public static function remove_all_context($public_ids = array(), $options = array()) {
+          return Uploader::call_context_api(null, 'remove_all', $public_ids, $options);
+        }
+
+        public static function call_context_api($context, $command, $public_ids = array(), &$options = array())
+        {
+            $params = array(
+                "timestamp" => time(),
+                "context" => $context,
+                "public_ids" => \Cloudinary::build_array($public_ids),
+                "type" => \Cloudinary::option_get($options, "type"),
+                "command" => $command
+            );
+            return Uploader::call_api("context", $params, $options);
+        }
+
         private static $TEXT_PARAMS = array("public_id", "font_family", "font_size", "font_color", "text_align", "font_weight", "font_style", "background", "opacity", "text_decoration");
 
         public static function text($text, $options = array())
@@ -236,6 +243,22 @@ namespace Cloudinary {
                 $params[$key] = \Cloudinary::option_get($options, $key);
             }
             return Uploader::call_api("text", $params, $options);
+        }
+
+        # Creates a new archive in the server and returns information in JSON format
+        public static function create_archive($options = array(), $target_format = NULL)
+        {
+            $params = \Cloudinary::build_archive_params($options);
+            if ($target_format != NULL) {
+                $params["target_format"] = $target_format;
+            }
+            return Uploader::call_api("generate_archive", $params, $options);
+        }
+
+        # Creates a new zip archive in the server and returns information in JSON format
+        public static function create_zip($options = array())
+        {
+            return Uploader::create_archive($options, "zip");
         }
 
         public static function call_api($action, $params, $options = array(), $file = NULL)
@@ -277,6 +300,10 @@ namespace Cloudinary {
             curl_setopt($ch, CURLOPT_POST, true);
             $timeout = \Cloudinary::option_get($options, "timeout", \Cloudinary::config_get("timeout", 60));
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+            $connection_timeout = \Cloudinary::option_get($options, "connection_timeout", \Cloudinary::config_get("connection_timeout"));
+            if ($connection_timeout != NULL) {
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connection_timeout);
+            }
             curl_setopt($ch, CURLOPT_POSTFIELDS, $post_params);
             curl_setopt($ch, CURLOPT_CAINFO,realpath(dirname(__FILE__)).DIRECTORY_SEPARATOR."cacert.pem");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); # no effect since PHP 5.1.3
@@ -318,15 +345,26 @@ namespace Cloudinary {
             }
             return $result;
         }
+
         protected static function build_eager($transformations) {
-            $eager = array();
-            foreach (\Cloudinary::build_array($transformations) as $trans) {
-                $transformation = $trans;
-                $format = \Cloudinary::option_consume($transformation, "format");
-                $single_eager = implode("/", array_filter(array(\Cloudinary::generate_transformation_string($transformation), $format)));
-                array_push($eager, $single_eager);
+            return \Cloudinary::build_eager($transformations);
+        }
+
+        protected static function build_responsive_breakpoints($breakpoints) {
+            if (!$breakpoints) {
+                return NULL;
             }
-            return implode("|", $eager);
+            $breakpoints_params = array();
+            foreach (\Cloudinary::build_array($breakpoints) as $breakpoint_settings) {
+                if ($breakpoint_settings) {
+                    $transformation = \Cloudinary::option_consume($breakpoint_settings, "transformation");
+                    if ($transformation) {
+                        $breakpoint_settings["transformation"] = \Cloudinary::generate_transformation_string($transformation);
+                    }
+                    array_push($breakpoints_params, $breakpoint_settings);
+                }
+            }
+            return json_encode($breakpoints_params);
         }
 
         protected static function build_custom_headers($headers) {

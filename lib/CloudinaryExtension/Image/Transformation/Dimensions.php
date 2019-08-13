@@ -36,7 +36,6 @@ class Dimensions
         } else if (!$dimensions->getHeight()) {
             return Dimensions::square($dimensions->getWidth());
         }
-
         return $dimensions;
     }
 

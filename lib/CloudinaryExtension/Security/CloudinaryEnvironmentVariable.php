@@ -8,16 +8,17 @@ use CloudinaryExtension\Credentials;
 
 class CloudinaryEnvironmentVariable implements EnvironmentVariable
 {
+
     private $environmentVariable;
 
     private function __construct($environmentVariable)
     {
         $this->environmentVariable = (string)$environmentVariable;
-        $cloudinaryUrl = str_replace('CLOUDINARY_URL=', '', $environmentVariable);
-        if ($this->isUrlValid($cloudinaryUrl)) {
-            Cloudinary::config_from_url($cloudinaryUrl);
+        try {
+            Cloudinary::config_from_url(str_replace('CLOUDINARY_URL=', '', $environmentVariable));
+        } catch (\Exception $e){
+            throw new \CloudinaryExtension\Exception\InvalidCredentials('Cloudinary config creation from environment variable failed');
         }
-
     }
 
     public static function fromString($environmentVariable)
@@ -32,7 +33,7 @@ class CloudinaryEnvironmentVariable implements EnvironmentVariable
 
     public function getCredentials()
     {
-        return new Credentials(
+        return Credentials::fromKeyAndSecret(
             Key::fromString(Cloudinary::config_get('api_key')),
             Secret::fromString(Cloudinary::config_get('api_secret'))
         );
@@ -43,8 +44,4 @@ class CloudinaryEnvironmentVariable implements EnvironmentVariable
         return $this->environmentVariable;
     }
 
-    private function isUrlValid($cloudinaryUrl)
-    {
-        return parse_url($cloudinaryUrl, PHP_URL_SCHEME) == "cloudinary";
-    }
 }

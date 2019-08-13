@@ -9,81 +9,88 @@ use CloudinaryExtension\Exception\FileAlreadyExists;
 use CloudinaryExtension\Exception\MigrationError;
 use CloudinaryExtension\Image\Transformation;
 use CloudinaryExtension\Security;
+use CloudinaryExtension\Image\Transformation\Format;
+use CloudinaryExtension\Image\Transformation\FetchFormat;
 
 class CloudinaryImageProvider implements ImageProvider
 {
     private $configuration;
+    /**
+     * @var UploadResponseValidator
+     */
+    private $uploadResponseValidator;
+    /**
+     * @var ConfigurationBuilder
+     */
+    private $configurationBuilder;
+    /**
+     * @var CredentialValidator
+     */
+    private $credentialValidator;
 
-    private $uploadConfig = array(
-        "use_filename" => true,
-        "unique_filename" => false,
-        "overwrite" => false
-    );
-
-    private function __construct(Configuration $configuration)
-    {
+    public function __construct(
+        ConfigurationInterface $configuration,
+        ConfigurationBuilder $configurationBuilder,
+        UploadResponseValidator $uploadResponseValidator,
+        CredentialValidator $credentialValidator
+    ) {
         $this->configuration = $configuration;
+        $this->uploadResponseValidator = $uploadResponseValidator;
+        $this->configurationBuilder = $configurationBuilder;
+        $this->credentialValidator = $credentialValidator;
         $this->authorise();
     }
 
-    public static function fromConfiguration(Configuration $configuration)
-    {
-        return new CloudinaryImageProvider($configuration);
+    public static function fromConfiguration(ConfigurationInterface $configuration){
+        return new CloudinaryImageProvider(
+            $configuration,
+            new ConfigurationBuilder($configuration),
+            new UploadResponseValidator(),
+            new CredentialValidator()
+        );
     }
 
     public function upload(Image $image)
     {
-        try{
-            $imagePath = (string)$image;
-            $uploadOptionsAndFolder = $this->uploadConfig + ["folder" => $image->getRelativeFolder()];
-            $uploadResult = Uploader::upload($imagePath, $uploadOptionsAndFolder);
+        try {
+            $uploadResult = Uploader::upload(
+                (string)$image,
+                $this->configuration->getUploadConfig()->toArray() + [ "folder" => $image->getRelativeFolder()]
+            );
 
-            if ($uploadResult['existing'] == 1) {
-                MigrationError::throwWith($image, MigrationError::CODE_FILE_ALREADY_EXISTS);
-            }
-            return $uploadResult;
+            return $this->uploadResponseValidator->validateResponse($image, $uploadResult);
+
         } catch (\Exception $e) {
             MigrationError::throwWith($image, MigrationError::CODE_API_ERROR, $e->getMessage());
         }
     }
 
-    public function transformImage(Image $image, Transformation $transformation = null)
+    public function retrieveTransformed(Image $image, Transformation $transformation)
     {
-        if ($transformation === null) {
-            $transformation = $this->configuration->getDefaultTransformation();
-        }
-        return Image::fromPath(\cloudinary_url($image->getId(), $transformation->build()), $image->getRelativePath());
+        return Image::fromPath(
+            \cloudinary_url($image->getId(), $transformation->build() + ["secure" => true]),
+            $image->getRelativePath()
+        );
     }
 
-    public function validateCredentials()
+    public function retrieve(Image $image)
     {
-        $signedValidationUrl = $this->getSignedValidationUrl();
-        return $this->validationResult($signedValidationUrl);
+        return $this->retrieveTransformed($image, $this->configuration->getDefaultTransformation());
     }
 
-    public function deleteImage(Image $image)
+    public function delete(Image $image)
     {
         Uploader::destroy($image->getId());
     }
 
+    public function validateCredentials()
+    {
+        return $this->credentialValidator->validate($this->configuration->getCredentials());
+    }
+
     private function authorise()
     {
-        Cloudinary::config($this->configuration->build());
+        Cloudinary::config($this->configurationBuilder->build());
         Cloudinary::$USER_PLATFORM = $this->configuration->getUserPlatform();
-    }
-
-    private function getSignedValidationUrl()
-    {
-        $consoleUrl = Security\ConsoleUrl::fromPath("media_library/cms");
-        return (string)Security\SignedConsoleUrl::fromConsoleUrlAndCredentials(
-            $consoleUrl,
-            $this->configuration->getCredentials()
-        );
-    }
-
-    private function validationResult($signedValidationUrl)
-    {
-        $request = new ValidateRemoteUrlRequest($signedValidationUrl);
-        return $request->validate();
     }
 }
